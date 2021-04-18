@@ -7,7 +7,7 @@ public interface Graph<V extends Comparable<V>,E extends Comparable<E> > {
 
     void removeVertex(Vertex<V> v);
 
-    Edge<V, E> addEdge(Vertex<V> from, Vertex<V> to, double weight);
+    Edge<V, E> addEdge(Vertex<V> from, Vertex<V> to, E weight);
 
     void removeEdge(Edge<V, E> e);
 
@@ -22,9 +22,13 @@ public interface Graph<V extends Comparable<V>,E extends Comparable<E> > {
     boolean hasEdge(Vertex<V> v, Vertex<V> u);
 
     class Vertex<V  extends Comparable<V>> {
-        V value;
+        private final V value;
         public Vertex(V value) {
             this.value = value;
+        }
+
+        public V getValue() {
+            return value;
         }
 
         @Override
@@ -44,14 +48,26 @@ public interface Graph<V extends Comparable<V>,E extends Comparable<E> > {
     }
 
     class Edge<V extends Comparable<V>, E extends Comparable<E>> {
-        Vertex<V> from;
-        Vertex<V> to;
-        E weight;
+        private final Vertex<V> from;
+        private final Vertex<V> to;
+        private final E weight;
 
         public Edge(Vertex<V> from, Graph.Vertex<V> to, E weight) {
             this.from = from;
             this.to = to;
             this.weight = weight;
+        }
+
+        public Vertex<V> getFrom() {
+            return from;
+        }
+
+        public Vertex<V> getTo() {
+            return to;
+        }
+
+        public E getWeight() {
+            return weight;
         }
 
         @Override
@@ -68,6 +84,7 @@ public interface Graph<V extends Comparable<V>,E extends Comparable<E> > {
 
         @Override
         public int hashCode() {
+            //TODO: place of possible errors
             int result = from.hashCode();
             result = 31 * result + to.hashCode();
             result = 31 * result + weight.hashCode();
