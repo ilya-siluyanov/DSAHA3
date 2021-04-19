@@ -38,6 +38,7 @@ public class AdjacencyMatrixGraph<V extends Comparable<V>, E extends Comparable<
         indices.remove(v);
         for (int i = vertexIndex + 1; i < this.vertices.size(); i++) {
             this.vertices.set(i - 1, this.vertices.get(i));
+            this.indices.put(this.vertices.get(i - 1), i - 1);
         }
         this.vertices.trimToSize();
 
