@@ -2,7 +2,7 @@ package task1;
 
 import java.util.Collection;
 
-public interface Graph<V extends Comparable<V>,E extends Comparable<E> > {
+public interface Graph<V, E> {
     Vertex<V> addVertex(V value);
 
     void removeVertex(Vertex<V> v);
@@ -21,8 +21,9 @@ public interface Graph<V extends Comparable<V>,E extends Comparable<E> > {
 
     boolean hasEdge(Vertex<V> v, Vertex<V> u);
 
-    class Vertex<V  extends Comparable<V>> {
+    class Vertex<V> {
         private final V value;
+
         public Vertex(V value) {
             this.value = value;
         }
@@ -47,7 +48,7 @@ public interface Graph<V extends Comparable<V>,E extends Comparable<E> > {
         }
     }
 
-    class Edge<V extends Comparable<V>, E extends Comparable<E>> {
+    class Edge<V, E> {
         private final Vertex<V> from;
         private final Vertex<V> to;
         private final E weight;
