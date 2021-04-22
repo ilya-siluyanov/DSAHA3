@@ -3,6 +3,7 @@ package task2;
 import task1.Graph;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 public class AdjacencyMatrixGraph<V, E> implements Graph<V, E> {
     Edge<V, E>[][] adjMatrix;
@@ -119,28 +120,6 @@ public class AdjacencyMatrixGraph<V, E> implements Graph<V, E> {
         return this.adjMatrix[this.indices.get(v)][this.indices.get(u)] != null;
     }
 
-    public boolean isAcyclic() {
-        if (this.vertices.size() == 0)
-            return false;
-        Stack<Vertex<V>> q = new Stack<>();
-        int[] color = new int[this.vertices.size()];
-        q.push(this.vertices.get(0));
-
-        while (!q.isEmpty()) {
-            Vertex<V> curr = q.pop();
-            color[this.indices.get(curr)] = 1;
-            for (Edge<V, E> edge : this.edgesFrom(curr)) {
-                if (color[this.indices.get(edge.getTo())] == 1) {
-                    return false;
-                } else if (color[this.indices.get(edge.getTo())] == 0)
-                    q.push(edge.getTo());
-            }
-
-        }
-        return true;
-    }
-
-
     public void transpose() {
         List<Edge<V, E>> newEdges = new ArrayList<>();
         for (Vertex<V> firstVertex : this.vertices) {
@@ -155,46 +134,69 @@ public class AdjacencyMatrixGraph<V, E> implements Graph<V, E> {
         newEdges.forEach(x -> this.addEdge(x.getFrom(), x.getTo(), x.getWeight()));
     }
 
-    public List<Vertex<V>> getCycle() {
-        if (this.vertices.size() == 0)
-            return null;
-        List<Vertex<V>> tempCycle = new ArrayList<>();
-        boolean isCycleFound = false;
-        Queue<Vertex<V>> q = new ArrayDeque<>();
-        boolean[] used = new boolean[this.vertices.size()];
-        q.offer(this.vertices.get(0));
-        while (!q.isEmpty()) {
-            Vertex<V> curr = q.poll();
-            used[this.indices.get(curr)] = true;
-            tempCycle.add(curr);
-            for (Edge<V, E> edge : this.edgesFrom(curr)) {
-                if (used[this.indices.get(edge.getTo())]) {
-                    tempCycle.add(edge.getTo());
-                    isCycleFound = true;
-                    break;
-                }
-                q.offer(edge.getTo());
-            }
-            if (isCycleFound)
-                break;
-        }
-        if (isCycleFound) {
-            //TODO: there is an error
-            List<Vertex<V>> cycle = new ArrayList<>();
-            Vertex<V> cycleStart = tempCycle.get(tempCycle.size() - 1);
-            cycle.add(cycleStart);
-            for (int i = tempCycle.size() - 2; i >= 0; i--) {
-                if (tempCycle.get(i).equals(cycleStart))
-                    break;
-                cycle.add(tempCycle.get(i));
-            }
-            for (int i = 0; i < cycle.size() / 2; i++) {
-                Vertex<V> tmp = cycle.get(i);
-                cycle.set(i, cycle.get(cycle.size() - 1 - i));
-                cycle.set(cycle.size() - 1 - i, tmp);
-            }
-            return cycle;
-        } else
-            return null;
+
+    public boolean isAcyclic() {
+        return this.getCycle() == null;
     }
+
+    public List<Vertex<V>> getCycle() {
+        int[] color = new int[this.vertices.size()];
+        int[] p = new int[this.vertices.size()];
+        List<Integer> cycleContainer = null;
+        for (int i = 0; i < this.vertices.size(); i++) {
+            if (color[i] == 0) {
+                cycleContainer = new ArrayList<>();
+                dfs(i, -1, p, color, cycleContainer);
+                if (!cycleContainer.isEmpty())
+                    break;
+                else {
+                    cycleContainer = null;
+                }
+            }
+        }
+        if (cycleContainer == null)
+            return null;
+        return cycleContainer.stream().map(x -> this.vertices.get(x)).collect(Collectors.toList());
+
+    }
+
+    /**
+     * @param x              - current vertex we consider
+     * @param from           - vertex from we came to x
+     * @param p              - array of parents of vertices, p[i] - vertex from which we came to i
+     * @param color          - color of a vertex.
+     *                       <p>
+     *                       p[i] = 0, if vertex was not visited
+     *                       p[i] = 1, if visited, but we are travelling through its children
+     *                       p[i] = 2, if dfs visited the vertex i and its children (and its children,and its children...)
+     * @param cycleContainer -  if there will be a cycle, the method will fill the container with vertices
+     *                       *                       from the cycle
+     */
+    private void dfs(int x, int from, int[] p, int[] color, List<Integer> cycleContainer) {
+        color[x] = 1;
+        p[x] = from;
+        for (int to : this.edgesFrom(this.vertices.get(x)).stream().map(v -> this.indices.get(v.getTo())).collect(Collectors.toList())) {
+            if (color[to] == 1) { //cycle is found
+                int curr = x;
+                while (curr != to) {
+                    cycleContainer.add(curr);
+                    curr = p[curr];
+                }
+                cycleContainer.add(curr);
+                for (int i = 0; i < cycleContainer.size() / 2; i++) {
+                    int temp = cycleContainer.get(i);
+                    int mirrorIndex = cycleContainer.size() - 1 - i;
+                    cycleContainer.set(i, cycleContainer.get(mirrorIndex));
+                    cycleContainer.set(mirrorIndex, temp);
+                }
+                break;
+            } else if (color[to] == 0) {
+                dfs(to, x, p, color, cycleContainer);
+                if (!cycleContainer.isEmpty())
+                    break;
+            }
+        }
+        color[x] = 2;
+    }
+
 }
