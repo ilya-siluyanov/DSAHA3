@@ -29,22 +29,22 @@ public interface Graph<V, E> {
         }
 
         public V getValue() {
-            return value;
+            return this.value;
         }
 
         @Override
         public boolean equals(Object o) {
             if (this == o) return true;
-            if (o == null || getClass() != o.getClass()) return false;
+            if (o == null || this.getClass() != o.getClass()) return false;
 
-            Vertex<?> vertex = (Vertex<?>) o;
+            Vertex<V> vertex = (Vertex<V>) o;
 
             return value.equals(vertex.value);
         }
 
         @Override
         public int hashCode() {
-            return value.hashCode();
+            return this.value.hashCode();
         }
     }
 
@@ -76,7 +76,7 @@ public interface Graph<V, E> {
             if (this == o) return true;
             if (o == null || getClass() != o.getClass()) return false;
 
-            Edge<?, ?> edge = (Edge<?, ?>) o;
+            Edge<V, E> edge = (Edge<V, E>) o;
 
             if (!from.equals(edge.from)) return false;
             if (!to.equals(edge.to)) return false;
@@ -86,10 +86,8 @@ public interface Graph<V, E> {
         @Override
         public int hashCode() {
             //TODO: place of possible errors
-            int result = from.hashCode();
-            result = 31 * result + to.hashCode();
-            result = 31 * result + weight.hashCode();
-            return result;
+            String hashString = this.from + "" + this.to + "" + this.weight;
+            return hashString.hashCode();
         }
     }
 }

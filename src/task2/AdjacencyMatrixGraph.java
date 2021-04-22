@@ -42,7 +42,7 @@ public class AdjacencyMatrixGraph<V, E> implements Graph<V, E> {
             this.vertices.set(i - 1, this.vertices.get(i));
             this.indices.put(this.vertices.get(i - 1), i - 1);
         }
-        this.vertices.trimToSize();
+        this.vertices.remove(this.vertices.size() - 1);
 
         int newSize = this.vertices.size();
         Edge<V, E>[][] temp = (Edge<V, E>[][]) new Edge[newSize][newSize];
@@ -122,21 +122,24 @@ public class AdjacencyMatrixGraph<V, E> implements Graph<V, E> {
     public boolean isAcyclic() {
         if (this.vertices.size() == 0)
             return false;
-        Queue<Vertex<V>> q = new ArrayDeque<>();
-        boolean[] used = new boolean[this.vertices.size()];
-        q.offer(this.vertices.get(0));
+        Stack<Vertex<V>> q = new Stack<>();
+        int[] color = new int[this.vertices.size()];
+        q.push(this.vertices.get(0));
+
         while (!q.isEmpty()) {
-            Vertex<V> curr = q.poll();
-            used[this.indices.get(curr)] = true;
+            Vertex<V> curr = q.pop();
+            color[this.indices.get(curr)] = 1;
             for (Edge<V, E> edge : this.edgesFrom(curr)) {
-                if (used[this.indices.get(edge.getTo())]) {
+                if (color[this.indices.get(edge.getTo())] == 1) {
                     return false;
-                }
-                q.offer(edge.getTo());
+                } else if (color[this.indices.get(edge.getTo())] == 0)
+                    q.push(edge.getTo());
             }
+
         }
         return true;
     }
+
 
     public void transpose() {
         List<Edge<V, E>> newEdges = new ArrayList<>();
@@ -176,6 +179,7 @@ public class AdjacencyMatrixGraph<V, E> implements Graph<V, E> {
                 break;
         }
         if (isCycleFound) {
+            //TODO: there is an error
             List<Vertex<V>> cycle = new ArrayList<>();
             Vertex<V> cycleStart = tempCycle.get(tempCycle.size() - 1);
             cycle.add(cycleStart);
