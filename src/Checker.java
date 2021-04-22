@@ -1,11 +1,67 @@
-package task2;
-
-import task1.Graph;
-
 import java.util.*;
 import java.util.stream.Collectors;
 
-public class AdjacencyMatrixGraph<V, E> implements Graph<V, E> {
+public class Checker {
+    public static void main(String[] args) {
+        Scanner scanner = new Scanner(System.in);
+        AdjacencyMatrixGraph<String, Integer> graph = new AdjacencyMatrixGraph<>();
+        String name;
+        String fromName, toName, weight;
+        while (scanner.hasNext()) {
+            String op = scanner.next();
+            switch (op) {
+                case "ADD_VERTEX":
+                    name = scanner.next();
+                    graph.addVertex(name);
+                    break;
+                case "REMOVE_VERTEX":
+                    name = scanner.next();
+                    graph.removeVertex(graph.findVertex(name));
+                    break;
+                case "ADD_EDGE":
+                    fromName = scanner.next();
+                    toName = scanner.next();
+                    weight = scanner.next();
+                    graph.addEdge(graph.findVertex(fromName), graph.findVertex(toName), Integer.parseInt(weight));
+                    break;
+                case "REMOVE_EDGE":
+                    fromName = scanner.next();
+                    toName = scanner.next();
+                    graph.removeEdge(graph.findEdge(fromName, toName));
+                    break;
+                case "HAS_EDGE":
+                    fromName = scanner.next();
+                    toName = scanner.next();
+                    System.out.println(
+                            graph.hasEdge(graph.findVertex(fromName), graph.findVertex(toName)) ? "TRUE" : "FALSE"
+                    );
+                    break;
+                case "IS_ACYCLIC":
+                    if (!graph.isAcyclic()) {
+                        List<Graph.Vertex<String>> cycle = graph.getCycle();
+                        long cycleWeight = 0;
+                        for (int i = 0; i < cycle.size() - 1; i++) {
+                            cycleWeight += graph.findEdge(cycle.get(i).getValue(), cycle.get(i + 1).getValue()).getWeight();
+                        }
+                        cycleWeight += graph.findEdge(cycle.get(cycle.size() - 1).getValue(), cycle.get(0).getValue()).getWeight();
+                        System.out.print(cycleWeight + " ");
+                        for (int i = 0; i < cycle.size() - 1; i++) {
+                            System.out.print(cycle.get(i).getValue() + " ");
+                        }
+                        System.out.println(cycle.get(cycle.size() - 1).getValue() + " ");
+                    } else {
+                        System.out.println("ACYCLIC");
+                    }
+                    break;
+                case "TRANSPOSE":
+                    graph.transpose();
+                    break;
+            }
+        }
+    }
+}
+
+class AdjacencyMatrixGraph<V, E> implements Graph<V, E> {
     Edge<V, E>[][] adjMatrix;
 
     //indices and vertices have one-to-one mapping
@@ -169,7 +225,7 @@ public class AdjacencyMatrixGraph<V, E> implements Graph<V, E> {
      *                       p[i] = 0, if vertex was not visited
      *                       p[i] = 1, if visited, but we are travelling through its children
      *                       p[i] = 2, if dfs visited the vertex i and its children (and its children,and its children...)
-     * @param cycleContainer - if there will be a cycle, the method will fill the container with vertices
+     * @param cycleContainer -  if there will be a cycle, the method will fill the container with vertices
      *                          from the cycle, otherwise it will be empty
      */
     private void dfs(int x, int from, int[] p, int[] color, List<Integer> cycleContainer) {
@@ -198,5 +254,96 @@ public class AdjacencyMatrixGraph<V, E> implements Graph<V, E> {
         }
         color[x] = 2;
     }
-
 }
+
+interface Graph<V, E> {
+    Graph.Vertex<V> addVertex(V value);
+
+    void removeVertex(Graph.Vertex<V> v);
+
+    Graph.Edge<V, E> addEdge(Graph.Vertex<V> from, Graph.Vertex<V> to, E weight);
+
+    void removeEdge(Graph.Edge<V, E> e);
+
+    Collection<Graph.Edge<V, E>> edgesFrom(Graph.Vertex<V> v);
+
+    Collection<Graph.Edge<V, E>> edgesTo(Graph.Vertex<V> v);
+
+    Graph.Vertex<V> findVertex(V value);
+
+    Graph.Edge<V, E> findEdge(V fromValue, V toValue);
+
+    boolean hasEdge(Graph.Vertex<V> v, Graph.Vertex<V> u);
+
+    class Vertex<V> {
+        private final V value;
+
+        public Vertex(V value) {
+            this.value = value;
+        }
+
+        public V getValue() {
+            return this.value;
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) return true;
+            if (o == null || this.getClass() != o.getClass()) return false;
+
+            Graph.Vertex<V> vertex = (Graph.Vertex<V>) o;
+
+            return value.equals(vertex.value);
+        }
+
+        @Override
+        public int hashCode() {
+            return this.value.hashCode();
+        }
+    }
+
+    class Edge<V, E> {
+        private final Graph.Vertex<V> from;
+        private final Graph.Vertex<V> to;
+        private final E weight;
+
+        public Edge(Graph.Vertex<V> from, Graph.Vertex<V> to, E weight) {
+            this.from = from;
+            this.to = to;
+            this.weight = weight;
+        }
+
+        public Graph.Vertex<V> getFrom() {
+            return from;
+        }
+
+        public Graph.Vertex<V> getTo() {
+            return to;
+        }
+
+        public E getWeight() {
+            return weight;
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) return true;
+            if (o == null || getClass() != o.getClass()) return false;
+
+            Graph.Edge<V, E> edge = (Graph.Edge<V, E>) o;
+
+            if (!from.equals(edge.from)) return false;
+            if (!to.equals(edge.to)) return false;
+            return weight.equals(edge.weight);
+        }
+
+        @Override
+        public int hashCode() {
+            //TODO: place of possible errors
+            String hashString = this.from + "" + this.to + "" + this.weight;
+            return hashString.hashCode();
+        }
+    }
+}
+
+
