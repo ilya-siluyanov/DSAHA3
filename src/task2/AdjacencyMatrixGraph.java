@@ -25,11 +25,11 @@ public class AdjacencyMatrixGraph<V, E> implements Graph<V, E> {
         this.vertices.add(v);
         int newSize = this.vertices.size();
         Edge<V, E>[][] temp = (Edge<V, E>[][]) new Edge[newSize][newSize];
-        for (int i = 0; i < adjMatrix.length; i++) {
-            System.arraycopy(this.adjMatrix[i], 0, temp[i], 0, adjMatrix.length);
+        for (int i = 0; i < this.adjMatrix.length; i++) {
+            System.arraycopy(this.adjMatrix[i], 0, temp[i], 0, this.adjMatrix[i].length);
         }
         this.adjMatrix = temp;
-        return v; //vertices are equal if they values are equal ==> the solution is safety
+        return v;
     }
 
     @Override
@@ -37,10 +37,10 @@ public class AdjacencyMatrixGraph<V, E> implements Graph<V, E> {
         if (v == null)
             return;
         int vertexIndex = this.indices.get(v);
-        indices.remove(v);
+        this.indices.remove(v);
         for (int i = vertexIndex + 1; i < this.vertices.size(); i++) {
+            this.indices.put(this.vertices.get(i), i - 1);
             this.vertices.set(i - 1, this.vertices.get(i));
-            this.indices.put(this.vertices.get(i - 1), i - 1);
         }
         this.vertices.remove(this.vertices.size() - 1);
 
@@ -69,7 +69,7 @@ public class AdjacencyMatrixGraph<V, E> implements Graph<V, E> {
     @Override
     public Edge<V, E> addEdge(Vertex<V> from, Vertex<V> to, E weight) { //O(1)
         Edge<V, E> edge = new Edge<>(from, to, weight);
-        this.adjMatrix[indices.get(from)][indices.get(to)] = edge;
+        this.adjMatrix[this.indices.get(from)][this.indices.get(to)] = edge;
         return edge;
     }
 
@@ -77,7 +77,7 @@ public class AdjacencyMatrixGraph<V, E> implements Graph<V, E> {
     public void removeEdge(Edge<V, E> e) { //O(1)
         if (e == null)
             return;
-        this.adjMatrix[indices.get(e.getFrom())][indices.get(e.getTo())] = null;
+        this.adjMatrix[this.indices.get(e.getFrom())][this.indices.get(e.getTo())] = null;
     }
 
     @Override
@@ -111,12 +111,12 @@ public class AdjacencyMatrixGraph<V, E> implements Graph<V, E> {
     public Edge<V, E> findEdge(V fromValue, V toValue) {
         Vertex<V> from = this.findVertex(fromValue);
         Vertex<V> to = this.findVertex(toValue);
-        return adjMatrix[this.indices.get(from)][this.indices.get(to)];
+        return this.adjMatrix[this.indices.get(from)][this.indices.get(to)];
     }
 
     @Override
     public boolean hasEdge(Vertex<V> v, Vertex<V> u) {
-        return adjMatrix[this.indices.get(v)][this.indices.get(u)] != null;
+        return this.adjMatrix[this.indices.get(v)][this.indices.get(u)] != null;
     }
 
     public boolean isAcyclic() {
