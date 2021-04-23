@@ -1,8 +1,14 @@
 package task1;
 
 import java.util.*;
-import java.util.stream.Collectors;
 
+/**
+ * Solution for the task 1
+ *
+ * @author Ilya Siluyanov
+ * @version 1.0
+ * @since 2021-04-21
+ */
 public class AdjacencyMatrixGraph<V, E> implements Graph<V, E> {
     Graph.Edge<V, E>[][] adjMatrix;
 
@@ -107,6 +113,7 @@ public class AdjacencyMatrixGraph<V, E> implements Graph<V, E> {
             return;
         this.adjMatrix[this.indices.get(e.getFrom())][this.indices.get(e.getTo())] = null;
     }
+
     /**
      * @param v - reference to a vertex for which to return edges going outside
      * @return collection of references to edges which go outside from the vertex v references to
@@ -120,6 +127,7 @@ public class AdjacencyMatrixGraph<V, E> implements Graph<V, E> {
         Arrays.stream(this.adjMatrix[index]).filter(Objects::nonNull).forEach(edgesFrom::add);
         return edgesFrom;
     }
+
     /**
      * @param v - reference to a vertex for which to return edges going to
      * @return a collection of references to edges which go to the vertex v references to
@@ -166,8 +174,9 @@ public class AdjacencyMatrixGraph<V, E> implements Graph<V, E> {
 
     /**
      * detects whether or not the graph have an edge from vertex 'from' to 'to'
+     *
      * @param from - reference to a vertex from which there is probably an edge going outside to 'to'
-     * @param to - reference to a vertex to for  there is probably an edge going to from 'from'
+     * @param to   - reference to a vertex to for  there is probably an edge going to from 'from'
      * @return whether or there is such an edge
      */
     @Override

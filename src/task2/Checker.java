@@ -7,6 +7,13 @@ import java.io.*;
 import java.util.List;
 import java.util.Scanner;
 
+/**
+ * Solution for the task 2
+ *
+ * @author Ilya Siluyanov
+ * @version 1.0
+ * @since 2021-04-21
+ */
 public class Checker {
     public static void main(String[] args) throws IOException {
 //        System.setIn(new BufferedInputStream(new FileInputStream("in.txt")));

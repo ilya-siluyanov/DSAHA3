@@ -10,6 +10,13 @@ import java.util.Scanner;
 
 import static java.lang.Math.min;
 
+/**
+ * Solution for the task 3
+ *
+ * @author Ilya Siluyanov
+ * @version 1.0
+ * @since 2021-04-21
+ */
 public class Solution {
     public static void main(String[] args) {
         new Solution().go();

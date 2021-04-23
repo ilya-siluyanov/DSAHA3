@@ -2,6 +2,13 @@ package task1;
 
 import java.util.Scanner;
 
+/**
+ * Solution for the task 1
+ *
+ * @author Ilya Siluyanov
+ * @version 1.0
+ * @since 2021-04-21
+ */
 public class Checker {
     public static void main(String[] args) {
         Scanner scanner = new Scanner(System.in);

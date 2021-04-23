@@ -2,6 +2,13 @@ package task1;
 
 import java.util.Collection;
 
+/**
+ * Solution for the task 1
+ *
+ * @author Ilya Siluyanov
+ * @version 1.0
+ * @since 2021-04-21
+ */
 public interface Graph<V, E> {
     /**
      * adds a vertex to the graph
