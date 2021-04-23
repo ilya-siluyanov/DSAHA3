@@ -3,7 +3,7 @@ import java.util.stream.Collectors;
 
 public class Checker implements Runnable {
     public static void main(String[] args) {
-        new Thread(null, new Checker(), "Checker", 1 >> 28).start();
+        new Thread(null, new Checker(), "Checker", 1 >> 31).start();
     }
 
     @Override
@@ -197,7 +197,7 @@ class AdjacencyMatrixGraph<V, E> implements Graph<V, E> {
 
 
     public boolean isAcyclic() {
-        return this.getCycle() == null;
+        return this.getCycle().size() == 0;
     }
 
     public List<Graph.Vertex<V>> getCycle() {
@@ -216,7 +216,7 @@ class AdjacencyMatrixGraph<V, E> implements Graph<V, E> {
             }
         }
         if (cycleContainer == null)
-            return null;
+            return new ArrayList<>();
         return cycleContainer.stream().map(x -> this.vertices.get(x)).collect(Collectors.toList());
 
     }
@@ -235,33 +235,18 @@ class AdjacencyMatrixGraph<V, E> implements Graph<V, E> {
      */
     private void dfs(int x, int from, int[] p, int[] color, List<Integer> cycleContainer) {
         Stack<Integer> s = new Stack<>();
+        int[] numOfChild = new int[p.length];
         s.push(x);
-        while (!s.isEmpty()) {
-            x = s.pop();
-            color[x] = 1;
-            p[x] = from;
-            for (int to : this.edgesFrom(this.vertices.get(x)).stream().map(v -> this.indices.get(v.getTo())).collect(Collectors.toList())) {
-                if (color[to] == 1) { //cycle is found
-                    int curr = x;
-                    List<Integer> reversedCycle = new ArrayList<>();
-                    while (curr != to) {
-                        reversedCycle.add(curr);
-                        curr = p[curr];
-                    }
-                    reversedCycle.add(curr);
-                    for (int i = reversedCycle.size() - 1; i >= 0; i--)
-                        cycleContainer.add(reversedCycle.get(i));
-                    break;
-                } else if (color[to] == 0) {
-                    dfs(to, x, p, color, cycleContainer);
-                    if (!cycleContainer.isEmpty())
-                        break;
-                }
-            }
-            color[x] = 2;
-        }
-    }
+        while(!s.isEmpty()){
+            Integer curr = s.pop();
 
+
+            if(p[curr]!=1){
+                numOfChild[p[curr]]
+            }
+        }
+
+    }
 }
 
 interface Graph<V, E> {
