@@ -1,88 +1,167 @@
-
-import java.io.*;
 import java.util.*;
 import java.util.stream.Collectors;
 
-public class Checker {
-    public static void main(String[] args) throws IOException {
-//        System.setIn(new BufferedInputStream(new FileInputStream("in.txt")));
-//        System.setOut(new PrintStream("out.txt"));
+import static java.lang.Math.min;
+
+public class Solution {
+    public static void main(String[] args) {
+        new Solution().go();
+    }
+
+    public static final long INF = (long) 10e15;
+
+    public void go() {
         Scanner scanner = new Scanner(System.in);
-        AdjacencyMatrixGraph<String, Integer> graph = new AdjacencyMatrixGraph<>();
-        String name;
-        String fromName, toName, weight;
-        while (scanner.hasNext()) {
-            String op = scanner.next();
-            switch (op) {
-                case "ADD_VERTEX":
-                    name = scanner.next();
-                    graph.addVertex(name);
-                    break;
-                case "REMOVE_VERTEX":
-                    name = scanner.next();
-                    graph.removeVertex(graph.findVertex(name));
-                    break;
-                case "ADD_EDGE":
-                    fromName = scanner.next();
-                    toName = scanner.next();
-                    weight = scanner.next();
-                    graph.addEdge(graph.findVertex(fromName), graph.findVertex(toName), Integer.parseInt(weight));
-                    break;
-                case "REMOVE_EDGE":
-                    fromName = scanner.next();
-                    toName = scanner.next();
-                    graph.removeEdge(graph.findEdge(fromName, toName));
-                    break;
-                case "HAS_EDGE":
-                    fromName = scanner.next();
-                    toName = scanner.next();
-                    System.out.println(
-                            graph.hasEdge(graph.findVertex(fromName), graph.findVertex(toName)) ? "TRUE" : "FALSE"
-                    );
-                    break;
-                case "IS_ACYCLIC":
-                    if (!graph.isAcyclic()) {
-                        List<Graph.Vertex<String>> cycle = graph.getCycle();
-                        long cycleWeight = 0;
-                        for (int i = 0; i < cycle.size() - 1; i++) {
-                            Graph.Edge<String, Integer> edge = graph.findEdge(cycle.get(i).getValue(), cycle.get(i + 1).getValue());
-                            //TODO: for debug!
-                            if (edge == null) {
-                                System.out.println(-1);
-                                System.out.flush();
-                                System.exit(0);
-                            }
-                            cycleWeight += edge.getWeight();
-                        }
-                        Graph.Edge<String, Integer> edge = graph.findEdge(cycle.get(cycle.size() - 1).getValue(), cycle.get(0).getValue());
-                        //TODO: for debug!
-                        if (edge == null) {
-                            System.out.println(-1);
-                            System.out.flush();
-                            System.exit(0);
-                        }
-                        cycleWeight += edge.getWeight();
-                        System.out.print(cycleWeight + " ");
-                        cycle.forEach(x -> System.out.print(x.getValue() + " "));
-                        System.out.println();
-                    } else {
-                        System.out.println("ACYCLIC");
-                    }
-                    break;
-                case "TRANSPOSE":
-                    graph.transpose();
-                    break;
+        int n = Integer.parseInt(scanner.next());
+        int m = Integer.parseInt(scanner.next());
+        AdjacencyMatrixGraph<Integer, EdgeInfo> graph = new AdjacencyMatrixGraph<>();
+        List<Graph.Edge<Integer, EdgeInfo>> edges = new ArrayList<>();
+        for (int i = 0; i < m; i++) {
+            int from = Integer.parseInt(scanner.next());
+            int to = Integer.parseInt(scanner.next());
+            int weight = Integer.parseInt(scanner.next());
+            int bandwidth = Integer.parseInt(scanner.next());
+
+            Graph.Vertex<Integer> vertexFrom = graph.findVertex(from);
+            Graph.Vertex<Integer> vertexTo = graph.findVertex(to);
+            if (vertexFrom == null)
+                vertexFrom = graph.addVertex(from);
+            if (vertexTo == null)
+                vertexTo = graph.addVertex(to);
+            edges.add(graph.addEdge(vertexFrom, vertexTo, new EdgeInfo(weight, bandwidth)));
+        }
+
+        Graph.Vertex<Integer> start = graph.findVertex(Integer.parseInt(scanner.next()));
+        Graph.Vertex<Integer> end = graph.findVertex(Integer.parseInt(scanner.next()));
+        int w = Integer.parseInt(scanner.next());
+        for (Graph.Edge<Integer, EdgeInfo> edge : edges) {
+            if (edge.getWeight().getBandwidth() < w) {
+                graph.removeEdge(edge);
             }
+        }
+        List<Graph.Vertex<Integer>> path = this.dijkstraAlgorithm(n, graph, start, end);
+        if (path != null) {
+            long vertices = path.size();
+            long length = 0;
+            long bandwidth = INF;
+            for (int i = 0; i < vertices - 1; i++) {
+                Graph.Edge<Integer, EdgeInfo> edge = graph.findEdge(path.get(i).getValue(), path.get(i + 1).getValue());
+                length += edge.getWeight().getWeight();
+                bandwidth = min(bandwidth, edge.getWeight().getBandwidth());
+            }
+
+            System.out.println(vertices + " " + length + " " + bandwidth + " ");
+            for (int i = 0; i < path.size()-1; i++) {
+                Graph.Vertex<Integer> v = path.get(i);
+                System.out.print(v.getValue() + " ");
+            }
+            System.out.println(path.get(path.size()-1).getValue());
+        } else {
+            System.out.println("IMPOSSIBLE");
+        }
+    }
+
+    public List<Graph.Vertex<Integer>> dijkstraAlgorithm(int n, AdjacencyMatrixGraph<Integer, EdgeInfo> graph, Graph.Vertex<Integer> start, Graph.Vertex<Integer> end) {
+        long[] d = new long[n + 1];
+        int[] p = new int[n + 1];
+        for (int i = 1; i <= n; i++) {
+            d[i] = INF;
+            p[i] = -1;
+        }
+        d[start.getValue()] = 0;
+        PriorityQueue<Pair> q = new PriorityQueue<>();
+        q.offer(new Pair(start, 0));
+        while (!q.isEmpty()) {
+            Pair currCase = q.poll();
+            Graph.Vertex<Integer> currVertex = currCase.getVertex();
+            if (currCase.getDistance() > d[currCase.getVertex().getValue()])
+                continue;
+
+            for (Graph.Edge<Integer, EdgeInfo> outEdge : graph.edgesFrom(currCase.getVertex())) {
+                if (d[currVertex.getValue()] + outEdge.getWeight().getWeight() < d[outEdge.getTo().getValue()]) {
+                    d[outEdge.getTo().getValue()] = d[currVertex.getValue()] + outEdge.getWeight().getWeight();
+                    p[outEdge.getTo().getValue()] = currVertex.getValue();
+                    q.offer(new Pair(outEdge.getTo(), d[outEdge.getTo().getValue()]));
+                }
+            }
+        }
+
+        if (d[end.getValue()] >= INF) {
+            return null;
+        } else {
+            List<Graph.Vertex<Integer>> ans = new ArrayList<>();
+            int curr = end.getValue();
+            while (p[curr] != -1) {
+                ans.add(graph.findVertex(curr));
+                curr = p[curr];
+            }
+            ans.add(graph.findVertex(curr));
+            for (int i = 0; i < ans.size() / 2; i++) {
+                int mirrorIndex = ans.size() - 1 - i;
+//                if (i >= mirrorIndex)
+//                    break;
+                Graph.Vertex<Integer> temp = ans.get(i);
+                ans.set(i, ans.get(mirrorIndex));
+                ans.set(mirrorIndex, temp);
+            }
+            return ans;
+        }
+    }
+
+    class EdgeInfo {
+        final Integer weight;
+        final Integer bandwidth;
+
+        public EdgeInfo(Integer weight, Integer bandwidth) {
+            this.weight = weight;
+            this.bandwidth = bandwidth;
+        }
+
+        public Integer getWeight() {
+            return weight;
+        }
+
+        public Integer getBandwidth() {
+            return bandwidth;
+        }
+
+    }
+
+    class Pair implements Comparable<Pair> {
+        final Graph.Vertex<Integer> vertex;
+        final long distance;
+
+        public Pair(Graph.Vertex<Integer> vertex, long distance) {
+            this.vertex = vertex;
+            this.distance = distance;
+        }
+
+        public Graph.Vertex<Integer> getVertex() {
+            return vertex;
+        }
+
+
+        public long getDistance() {
+            return distance;
+        }
+
+        @Override
+        public int compareTo(Pair o) {
+            long diff = o.distance - this.distance;
+            if (diff > 0)
+                return 1;
+            if (diff == 0)
+                return 0;
+            return -1;
         }
     }
 }
-
 
 class AdjacencyMatrixGraph<V, E> implements Graph<V, E> {
     Graph.Edge<V, E>[][] adjMatrix;
 
     //indices and vertices have one-to-one mapping
-    HashMap<Graph.Vertex<V>, Integer> indices;
+    HashMap<Vertex<V>, Integer> indices;
     ArrayList<Graph.Vertex<V>> vertices;
 
     public AdjacencyMatrixGraph() {
@@ -94,7 +173,6 @@ class AdjacencyMatrixGraph<V, E> implements Graph<V, E> {
 
     @Override
     public Graph.Vertex<V> addVertex(V value) { //O(n^2)
-
         Graph.Vertex<V> v = this.findVertex(value);
         if (v != null)
             return v;
@@ -282,25 +360,24 @@ class AdjacencyMatrixGraph<V, E> implements Graph<V, E> {
     }
 }
 
-
 interface Graph<V, E> {
-    Vertex<V> addVertex(V value);
+    Graph.Vertex<V> addVertex(V value);
 
-    void removeVertex(Vertex<V> v);
+    void removeVertex(Graph.Vertex<V> v);
 
-    Edge<V, E> addEdge(Vertex<V> from, Vertex<V> to, E weight);
+    Graph.Edge<V, E> addEdge(Graph.Vertex<V> from, Graph.Vertex<V> to, E weight);
 
-    void removeEdge(Edge<V, E> e);
+    void removeEdge(Graph.Edge<V, E> e);
 
-    Collection<Edge<V, E>> edgesFrom(Vertex<V> v);
+    Collection<Graph.Edge<V, E>> edgesFrom(Graph.Vertex<V> v);
 
-    Collection<Edge<V, E>> edgesTo(Vertex<V> v);
+    Collection<Graph.Edge<V, E>> edgesTo(Graph.Vertex<V> v);
 
-    Vertex<V> findVertex(V value);
+    Graph.Vertex<V> findVertex(V value);
 
-    Edge<V, E> findEdge(V fromValue, V toValue);
+    Graph.Edge<V, E> findEdge(V fromValue, V toValue);
 
-    boolean hasEdge(Vertex<V> v, Vertex<V> u);
+    boolean hasEdge(Graph.Vertex<V> v, Graph.Vertex<V> u);
 
     class Vertex<V> {
         private final V value;
@@ -318,7 +395,7 @@ interface Graph<V, E> {
             if (this == o) return true;
             if (o == null || this.getClass() != o.getClass()) return false;
 
-            Vertex<V> vertex = (Vertex<V>) o;
+            Graph.Vertex<V> vertex = (Graph.Vertex<V>) o;
 
             return value.equals(vertex.value);
         }
@@ -330,21 +407,21 @@ interface Graph<V, E> {
     }
 
     class Edge<V, E> {
-        private final Vertex<V> from;
-        private final Vertex<V> to;
+        private final Graph.Vertex<V> from;
+        private final Graph.Vertex<V> to;
         private final E weight;
 
-        public Edge(Vertex<V> from, Graph.Vertex<V> to, E weight) {
+        public Edge(Graph.Vertex<V> from, Graph.Vertex<V> to, E weight) {
             this.from = from;
             this.to = to;
             this.weight = weight;
         }
 
-        public Vertex<V> getFrom() {
+        public Graph.Vertex<V> getFrom() {
             return from;
         }
 
-        public Vertex<V> getTo() {
+        public Graph.Vertex<V> getTo() {
             return to;
         }
 
@@ -357,7 +434,7 @@ interface Graph<V, E> {
             if (this == o) return true;
             if (o == null || getClass() != o.getClass()) return false;
 
-            Edge<V, E> edge = (Edge<V, E>) o;
+            Graph.Edge<V, E> edge = (Graph.Edge<V, E>) o;
 
             if (!from.equals(edge.from)) return false;
             if (!to.equals(edge.to)) return false;
@@ -372,5 +449,3 @@ interface Graph<V, E> {
         }
     }
 }
-
-
