@@ -48,14 +48,15 @@ public class Solution {
         }
 
         List<Graph.Vertex<Integer>> path = this.dijkstraAlgorithm(n, graph, start, end);
-        if (path != null) {
+        if (path != null) { //if there is a path from start to end
             long vertices = path.size();
             long length = 0;
             long bandwidth = INF;
+            //calculate length and bandwidth of a path
             for (int i = 0; i < vertices - 1; i++) {
                 Graph.Edge<Integer, EdgeInfo> edge = graph.findEdge(path.get(i).getValue(), path.get(i + 1).getValue());
-                length += edge.getWeight().getWeight();
-                bandwidth = min(bandwidth, edge.getWeight().getBandwidth());
+                length += edge.getWeight().getWeight(); //length of a path is sum of edges connecting edges v[i] and v[i+1], 0<=i<=path.size()-1
+                bandwidth = min(bandwidth, edge.getWeight().getBandwidth()); //bandwidth of a path is the minimum bandwidth on the path
             }
 
             System.out.println(vertices + " " + length + " " + bandwidth + " ");
@@ -64,30 +65,45 @@ public class Solution {
                 System.out.print(v.getValue() + " ");
             }
             System.out.println(path.get(path.size() - 1).getValue());
-        } else {
+        } else { //otherwise
             System.out.println("IMPOSSIBLE");
         }
     }
 
+    /**
+     * Dijkstra algorithm implementation
+     * @param n - number of vertices in a graph
+     * @param graph - given graph
+     * @param start - start vertex
+     * @param end - end vertex
+     * @return - shortest path from start to end if present, otherwise null
+     */
     public List<Graph.Vertex<Integer>> dijkstraAlgorithm(int n, AdjacencyMatrixGraph<Integer, EdgeInfo> graph, Graph.Vertex<Integer> start, Graph.Vertex<Integer> end) {
+        //d[i] - the shortest path from start to vertex i, inf if there is no such a path from start to i
         long[] d = new long[n + 1];
+        //p[i] - parent of vertex i on the shortest path, -1 if there is no parent of i
         int[] p = new int[n + 1];
         for (int i = 1; i <= n; i++) {
             d[i] = INF;
             p[i] = -1;
         }
         d[start.getValue()] = 0;
+
         PriorityQueue<Pair> q = new PriorityQueue<>();
         q.offer(new Pair(start, 0));
+
         while (!q.isEmpty()) {
             Pair currCase = q.poll();
             Graph.Vertex<Integer> currVertex = currCase.getVertex();
             if (currCase.getDistance() > d[currCase.getVertex().getValue()])
                 continue;
-
+            //check adjacent vertices
             for (Graph.Edge<Integer, EdgeInfo> outEdge : graph.edgesFrom(currCase.getVertex())) {
+                //if the shortest path can be updated, update it
                 if (d[currVertex.getValue()] + outEdge.getWeight().getWeight() < d[outEdge.getTo().getValue()]) {
+                    //update length of the shortest path
                     d[outEdge.getTo().getValue()] = d[currVertex.getValue()] + outEdge.getWeight().getWeight();
+                    //update parent of vertex on the shortest path
                     p[outEdge.getTo().getValue()] = currVertex.getValue();
                     q.offer(new Pair(outEdge.getTo(), d[outEdge.getTo().getValue()]));
                 }
@@ -114,6 +130,9 @@ public class Solution {
         }
     }
 
+    /**
+     * wrapper for a graph edge that stores both weight and bandwidth
+     */
     class EdgeInfo {
         final Integer weight;
         final Integer bandwidth;
@@ -133,6 +152,11 @@ public class Solution {
 
     }
 
+    /**
+     * wrapper for an element in priority queue containing a vertex and distance from start to the vertex
+     * A pair x is less than y if x.distance < y.distance, greater than if x.distance > y.distance (equality does not
+     * matter for the priority queue in Dijkstra algorithm)
+     */
     class Pair implements Comparable<Pair> {
         final Graph.Vertex<Integer> vertex;
         final long distance;
