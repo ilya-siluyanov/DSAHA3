@@ -195,23 +195,23 @@ class AdjacencyMatrixGraph<V, E> implements Graph<V, E> {
     }
 
     public List<Graph.Vertex<V>> getCycle() {
-        int[] color = new int[this.vertices.size()];
-        int[] p = new int[this.vertices.size()];
-        List<Integer> cycleContainer = null;
+        this.color = new int[this.vertices.size()];
+        this.p = new int[this.vertices.size()];
+        this.cycleContainer = null;
         for (int i = 0; i < this.vertices.size(); i++) {
             if (color[i] == 0) {
-                cycleContainer = new ArrayList<>();
-                dfs(i, -1, p, color, cycleContainer);
-                if (!cycleContainer.isEmpty()) {
+                this.cycleContainer = new ArrayList<>();
+                dfs(i);
+                if (!this.cycleContainer.isEmpty()) {
                     break;
                 } else {
-                    cycleContainer = null;
+                    this.cycleContainer = null;
                 }
             }
         }
-        if (cycleContainer == null)
+        if (this.cycleContainer == null)
             return null;
-        return cycleContainer.stream().map(x -> this.vertices.get(x)).collect(Collectors.toList());
+        return this.cycleContainer.stream().map(x -> this.vertices.get(x)).collect(Collectors.toList());
 
     }
 
@@ -220,16 +220,19 @@ class AdjacencyMatrixGraph<V, E> implements Graph<V, E> {
      * @param from           - vertex from we came to x
      * @param p              - array of parents of vertices, p[i] - vertex from which we came to i
      * @param color          - color of a vertex.
-     *                       <p>
-     *                       p[i] = 0, if vertex was not visited
-     *                       p[i] = 1, if visited, but we are travelling through its children
-     *                       p[i] = 2, if dfs visited the vertex i and its children (and its children,and its children...)
+     * <p>
+     * p[i] = 0, if vertex was not visited
+     * p[i] = 1, if visited, but we are travelling through its children
+     * p[i] = 2, if dfs visited the vertex i and its children (and its children,and its children...)
      * @param cycleContainer - if there will be a cycle, the method will fill the container with vertices
-     *                       from the cycle, otherwise it will be empty
+     * from the cycle, otherwise it will be empty
      */
-    private void dfs(int x, int from, int[] p, int[] color, List<Integer> cycleContainer) {
+    private int[] p;
+    private int[] color;
+    private List<Integer> cycleContainer;
+
+    private void dfs(int x) {
         color[x] = 1;
-        p[x] = from;
         for (int to : this.edgesFrom(this.vertices.get(x)).stream().map(v -> this.indices.get(v.getTo())).collect(Collectors.toList())) {
             if (color[to] == 1) { //cycle is found
                 int curr = x;
@@ -241,12 +244,15 @@ class AdjacencyMatrixGraph<V, E> implements Graph<V, E> {
                 for (int i = 0; i < cycleContainer.size() / 2; i++) {
                     int temp = cycleContainer.get(i);
                     int mirrorIndex = cycleContainer.size() - 1 - i;
+                    if (i >= mirrorIndex)
+                        break;
                     cycleContainer.set(i, cycleContainer.get(mirrorIndex));
                     cycleContainer.set(mirrorIndex, temp);
                 }
                 break;
             } else if (color[to] == 0) {
-                dfs(to, x, p, color, cycleContainer);
+                p[to] = x;
+                dfs(to);
                 if (!cycleContainer.isEmpty())
                     break;
             }

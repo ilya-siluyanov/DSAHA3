@@ -21,25 +21,30 @@ public class Solution {
         Scanner scanner = new Scanner(System.in);
         int n = Integer.parseInt(scanner.next());
         int m = Integer.parseInt(scanner.next());
-        int w = Integer.parseInt(scanner.next());
         AdjacencyMatrixGraph<Integer, EdgeInfo> graph = new AdjacencyMatrixGraph<>();
+        List<Graph.Edge<Integer, EdgeInfo>> edges = new ArrayList<>();
         for (int i = 0; i < m; i++) {
             int from = Integer.parseInt(scanner.next());
             int to = Integer.parseInt(scanner.next());
             int weight = Integer.parseInt(scanner.next());
             int bandwidth = Integer.parseInt(scanner.next());
-            if (bandwidth < w)
-                continue;
+
             Graph.Vertex<Integer> vertexFrom = graph.findVertex(from);
             Graph.Vertex<Integer> vertexTo = graph.findVertex(to);
             if (vertexFrom == null)
                 vertexFrom = graph.addVertex(from);
             if (vertexTo == null)
                 vertexTo = graph.addVertex(to);
-            graph.addEdge(vertexFrom, vertexTo, new EdgeInfo(weight, bandwidth));
+            edges.add(graph.addEdge(vertexFrom, vertexTo, new EdgeInfo(weight, bandwidth)));
         }
         Graph.Vertex<Integer> start = graph.findVertex(Integer.parseInt(scanner.next()));
         Graph.Vertex<Integer> end = graph.findVertex(Integer.parseInt(scanner.next()));
+        int w = Integer.parseInt(scanner.next());
+        for (Graph.Edge<Integer, EdgeInfo> edge : edges) {
+            if (edge.getWeight().getBandwidth() < w) {
+                graph.removeEdge(edge);
+            }
+        }
         List<Graph.Vertex<Integer>> path = this.dijkstraAlgorithm(n, graph, start, end);
         if (path != null) {
             long vertices = path.size();
