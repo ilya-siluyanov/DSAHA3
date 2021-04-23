@@ -3,11 +3,14 @@ package task2;
 
 import task1.Graph;
 
+import java.io.*;
 import java.util.List;
 import java.util.Scanner;
 
 public class Checker {
-    public static void main(String[] args) {
+    public static void main(String[] args) throws IOException {
+//        System.setIn(new BufferedInputStream(new FileInputStream("in.txt")));
+//        System.setOut(new PrintStream("out.txt"));
         Scanner scanner = new Scanner(System.in);
         AdjacencyMatrixGraph<String, Integer> graph = new AdjacencyMatrixGraph<>();
         String name;
