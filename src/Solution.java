@@ -286,6 +286,10 @@ class AdjacencyMatrixGraph<V, E> implements Graph<V, E> {
         return this.adjMatrix[this.indices.get(from)][this.indices.get(to)] != null;
     }
 
+    /**
+     * transposes the graph. If there is an edge from i to j, it removes the edge and adds an edge from j to i
+     * with the same weight (and bandwidth if present)
+     */
     public void transpose() {
         List<Graph.Edge<V, E>> newEdges = new ArrayList<>();
         for (Graph.Vertex<V> firstVertex : this.vertices) {
@@ -300,11 +304,16 @@ class AdjacencyMatrixGraph<V, E> implements Graph<V, E> {
         newEdges.forEach(x -> this.addEdge(x.getTo(), x.getFrom(), x.getWeight()));
     }
 
-
+    /**
+     * @return whether or not the graph is acyclic
+     */
     public boolean isAcyclic() {
         return this.getCycle().isEmpty();
     }
 
+    /**
+     * @return cycle in the graph, if exists, otherwise empty list
+     */
     public List<Vertex<V>> getCycle() {
         int[] color = new int[this.vertices.size()];
         int[] p = new int[this.vertices.size()];
@@ -322,15 +331,15 @@ class AdjacencyMatrixGraph<V, E> implements Graph<V, E> {
     }
 
     /**
+     * custom dfs to find cycles in the graph
      * @param x              - current vertex we consider
-     * @param from           - vertex from we came to x
+     * @param from           - vertex from which we came to x
      * @param p              - array of parents of vertices, p[i] - vertex from which we came to i
      * @param color          - color of a vertex.
-     *                       <p>
      *                       p[i] = 0, if vertex was not visited
      *                       p[i] = 1, if visited, but we are travelling through its children
      *                       p[i] = 2, if dfs visited the vertex i and its children (and its children,and its children...)
-     * @param cycleContainer -  if there will be a cycle, the method will fill the container with vertices
+     * @param cycleContainer - if there will be a cycle, the method will fill the container with vertices
      *                       from the cycle, otherwise it will be empty
      */
     private void dfs(int x, int from, int[] p, int[] color, List<Integer> cycleContainer) {
@@ -362,24 +371,71 @@ class AdjacencyMatrixGraph<V, E> implements Graph<V, E> {
 }
 
 interface Graph<V, E> {
+    /**
+     * adds a vertex to the graph
+     * @param value - value corresponding to a new vertex
+     * @return reference to vertex with the corresponding value
+     */
     Graph.Vertex<V> addVertex(V value);
 
+    /**
+     * removes the vertex v references to
+     * @param v - reference to the vertex to remove
+     */
     void removeVertex(Graph.Vertex<V> v);
 
+    /**
+     * adds an edge to the graph. Here edge is an ordered pair {from, to, w}
+     * @param from - vertex from which the edge goes outside
+     * @param to - vertex to which the edge goes to
+     * @param weight - weight of the edge
+     * @return - reference to corresponding edge
+     */
     Graph.Edge<V, E> addEdge(Graph.Vertex<V> from, Graph.Vertex<V> to, E weight);
 
+    /**
+     * removes the edge e references to
+     * @param e - reference to edges to remove
+     */
     void removeEdge(Graph.Edge<V, E> e);
 
+    /**
+     * @param v - reference to a vertex for which to return edges going outside
+     * @return collection of references to edges which go outside from the vertex v references to
+     */
     Collection<Graph.Edge<V, E>> edgesFrom(Graph.Vertex<V> v);
 
+    /**
+     * @param v - reference to a vertex for which to return edges going to
+     * @return a collection of references to edges which go to the vertex v references to
+     */
     Collection<Graph.Edge<V, E>> edgesTo(Graph.Vertex<V> v);
 
+    /**
+     * @param value - value of vertex for which to return a reference
+     * @return reference to a vertex with value 'value', otherwise null
+     */
     Graph.Vertex<V> findVertex(V value);
 
+    /**
+     * @param fromValue - value of vertex from which an edge goes outside
+     * @param toValue - value of vertex to which the same edge goes to
+     * @return reference to the edge from vertex with value 'fromValue' to vertex with value 'toValue' if present,
+     * otherwise null
+     */
     Graph.Edge<V, E> findEdge(V fromValue, V toValue);
 
+    /**
+     * @param v - reference to a vertex from which an edge probably goes outside
+     * @param u - reference to a vertex to which the same edge probably goes to
+     * @return whether or not there exists an edge from vertex v to vertex u
+     */
     boolean hasEdge(Graph.Vertex<V> v, Graph.Vertex<V> u);
 
+    /**
+     * class representing a vertex in a graph
+     * @param <V> type of value of vertex
+     */
     class Vertex<V> {
         private final V value;
 
@@ -391,6 +447,11 @@ interface Graph<V, E> {
             return this.value;
         }
 
+        /**
+         * vertices are equal if they have the same value
+         * @param o - another object
+         * @return whether or not vertices are equal
+         */
         @Override
         public boolean equals(Object o) {
             if (this == o) return true;
@@ -401,12 +462,21 @@ interface Graph<V, E> {
             return value.equals(vertex.value);
         }
 
+        /**
+         * hashcode of a vertex === hashcode of the value corresponding to the vertex
+         * @return hashcode of a vertex
+         */
         @Override
         public int hashCode() {
             return this.value.hashCode();
         }
     }
 
+    /**
+     * class representing an edge in a graph
+     * @param <V> type of value in vertices
+     * @param <E> type of weights in edges
+     */
     class Edge<V, E> {
         private final Graph.Vertex<V> from;
         private final Graph.Vertex<V> to;

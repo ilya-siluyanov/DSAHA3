@@ -21,7 +21,6 @@ public class AdjacencyMatrixGraph<V, E> implements Graph<V, E> {
 
     @Override
     public Graph.Vertex<V> addVertex(V value) { //O(n^2)
-
         Graph.Vertex<V> v = this.findVertex(value);
         if (v != null)
             return v;
