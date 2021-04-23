@@ -128,6 +128,8 @@ class AdjacencyMatrixGraph<V, E> implements Graph<V, E> {
 
     @Override
     public Graph.Edge<V, E> addEdge(Graph.Vertex<V> from, Graph.Vertex<V> to, E weight) { //O(1)
+        if (from == null || to == null)
+            return null;
         Graph.Edge<V, E> edge = new Graph.Edge<>(from, to, weight);
         this.adjMatrix[this.indices.get(from)][this.indices.get(to)] = edge;
         return edge;
@@ -182,6 +184,8 @@ class AdjacencyMatrixGraph<V, E> implements Graph<V, E> {
 
     @Override
     public boolean hasEdge(Graph.Vertex<V> from, Graph.Vertex<V> to) {
+        if (from == null || to == null)
+            return false;
         return this.adjMatrix[this.indices.get(from)][this.indices.get(to)] != null;
     }
 
@@ -235,12 +239,12 @@ class AdjacencyMatrixGraph<V, E> implements Graph<V, E> {
      *                       p[i] = 1, if visited, but we are travelling through its children
      *                       p[i] = 2, if dfs visited the vertex i and its children (and its children,and its children...)
      * @param cycleContainer -  if there will be a cycle, the method will fill the container with vertices
-     *                          from the cycle, otherwise it will be empty
+     *                       from the cycle, otherwise it will be empty
      */
     private void dfs(int x, int from, int[] p, int[] color, List<Integer> cycleContainer) {
         color[x] = 1;
         p[x] = from;
-        for (int to : this.edgesFrom(this.vertices.get(x)).stream().map(v -> this.indices.get(v.getTo())).collect(Collectors.toList())) {
+        for (int to : this.edgesFrom(this.vertices.get(x)).stream().map(Edge::getTo).filter(Objects::nonNull).map(v -> this.indices.get(v)).collect(Collectors.toList())) {
             if (color[to] == 1) { //cycle is found
                 int curr = x;
                 while (curr != to) {
