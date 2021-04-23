@@ -37,6 +37,7 @@ public class Solution {
                 vertexTo = graph.addVertex(to);
             edges.add(graph.addEdge(vertexFrom, vertexTo, new EdgeInfo(weight, bandwidth)));
         }
+
         Graph.Vertex<Integer> start = graph.findVertex(Integer.parseInt(scanner.next()));
         Graph.Vertex<Integer> end = graph.findVertex(Integer.parseInt(scanner.next()));
         int w = Integer.parseInt(scanner.next());
@@ -45,6 +46,7 @@ public class Solution {
                 graph.removeEdge(edge);
             }
         }
+
         List<Graph.Vertex<Integer>> path = this.dijkstraAlgorithm(n, graph, start, end);
         if (path != null) {
             long vertices = path.size();
@@ -57,9 +59,11 @@ public class Solution {
             }
 
             System.out.println(vertices + " " + length + " " + bandwidth + " ");
-            for (Graph.Vertex<Integer> v : path) {
+            for (int i = 0; i < path.size() - 1; i++) {
+                Graph.Vertex<Integer> v = path.get(i);
                 System.out.print(v.getValue() + " ");
             }
+            System.out.println(path.get(path.size() - 1).getValue());
         } else {
             System.out.println("IMPOSSIBLE");
         }
@@ -90,7 +94,7 @@ public class Solution {
             }
         }
 
-        if (d[end.getValue()] == INF) {
+        if (d[end.getValue()] >= INF) {
             return null;
         } else {
             List<Graph.Vertex<Integer>> ans = new ArrayList<>();
@@ -101,9 +105,10 @@ public class Solution {
             }
             ans.add(graph.findVertex(curr));
             for (int i = 0; i < ans.size() / 2; i++) {
+                int mirrorIndex = ans.size() - 1 - i;
                 Graph.Vertex<Integer> temp = ans.get(i);
-                ans.set(i, ans.get(ans.size() - 1 - i));
-                ans.set(ans.size() - 1 - i, temp);
+                ans.set(i, ans.get(mirrorIndex));
+                ans.set(mirrorIndex, temp);
             }
             return ans;
         }

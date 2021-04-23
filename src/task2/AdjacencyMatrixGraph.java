@@ -9,7 +9,7 @@ public class AdjacencyMatrixGraph<V, E> implements Graph<V, E> {
     Graph.Edge<V, E>[][] adjMatrix;
 
     //indices and vertices have one-to-one mapping
-    HashMap<Graph.Vertex<V>, Integer> indices;
+    HashMap<Vertex<V>, Integer> indices;
     ArrayList<Graph.Vertex<V>> vertices;
 
     public AdjacencyMatrixGraph() {
@@ -19,6 +19,12 @@ public class AdjacencyMatrixGraph<V, E> implements Graph<V, E> {
         this.indices = new HashMap<>();
     }
 
+    /**
+     * adds a vertex to the graph
+     *
+     * @param value - value corresponding to a new vertex
+     * @return reference to vertex with the corresponding value
+     */
     @Override
     public Graph.Vertex<V> addVertex(V value) { //O(n^2)
         Graph.Vertex<V> v = this.findVertex(value);
@@ -36,6 +42,11 @@ public class AdjacencyMatrixGraph<V, E> implements Graph<V, E> {
         return v;
     }
 
+    /**
+     * removes the vertex v references to
+     *
+     * @param v - reference to the vertex to remove
+     */
     @Override
     public void removeVertex(Graph.Vertex<V> v) { //O(n^2)
         if (v == null)
@@ -70,6 +81,14 @@ public class AdjacencyMatrixGraph<V, E> implements Graph<V, E> {
         this.adjMatrix = temp;
     }
 
+    /**
+     * adds an edge to the graph. Here edge is an ordered pair {from, to, w}
+     *
+     * @param from   - vertex from which the edge goes outside
+     * @param to     - vertex to which the edge goes to
+     * @param weight - weight of the edge
+     * @return - reference to corresponding edge
+     */
     @Override
     public Graph.Edge<V, E> addEdge(Graph.Vertex<V> from, Graph.Vertex<V> to, E weight) { //O(1)
         if (from == null || to == null)
@@ -79,13 +98,21 @@ public class AdjacencyMatrixGraph<V, E> implements Graph<V, E> {
         return edge;
     }
 
+    /**
+     * removes the edge e references to
+     *
+     * @param e - reference to edges to remove
+     */
     @Override
     public void removeEdge(Graph.Edge<V, E> e) { //O(1)
         if (e == null)
             return;
         this.adjMatrix[this.indices.get(e.getFrom())][this.indices.get(e.getTo())] = null;
     }
-
+    /**
+     * @param v - reference to a vertex for which to return edges going outside
+     * @return collection of references to edges which go outside from the vertex v references to
+     */
     @Override
     public Collection<Graph.Edge<V, E>> edgesFrom(Graph.Vertex<V> v) { //O(n)
         if (v == null)
@@ -95,7 +122,10 @@ public class AdjacencyMatrixGraph<V, E> implements Graph<V, E> {
         Arrays.stream(this.adjMatrix[index]).filter(Objects::nonNull).forEach(edgesFrom::add);
         return edgesFrom;
     }
-
+    /**
+     * @param v - reference to a vertex for which to return edges going to
+     * @return a collection of references to edges which go to the vertex v references to
+     */
     @Override
     public Collection<Graph.Edge<V, E>> edgesTo(Graph.Vertex<V> v) {//O(n)
         if (v == null)
@@ -109,6 +139,10 @@ public class AdjacencyMatrixGraph<V, E> implements Graph<V, E> {
         return edgesTo;
     }
 
+    /**
+     * @param value - value of vertex for which to return a reference
+     * @return reference to a vertex with value 'value', otherwise null
+     */
     @Override
     public Graph.Vertex<V> findVertex(V value) {
         for (Graph.Vertex<V> v : this.vertices)
@@ -117,6 +151,12 @@ public class AdjacencyMatrixGraph<V, E> implements Graph<V, E> {
         return null;
     }
 
+    /**
+     * @param fromValue - value of vertex from which an edge goes outside
+     * @param toValue   - value of vertex to which the same edge goes to
+     * @return reference to the edge from vertex with value 'fromValue' to vertex with value 'toValue' if present,
+     * otherwise null
+     */
     @Override
     public Graph.Edge<V, E> findEdge(V fromValue, V toValue) {
         Graph.Vertex<V> from = this.findVertex(fromValue);
@@ -126,6 +166,12 @@ public class AdjacencyMatrixGraph<V, E> implements Graph<V, E> {
         return this.adjMatrix[this.indices.get(from)][this.indices.get(to)];
     }
 
+    /**
+     * detects whether or not the graph have an edge from vertex 'from' to 'to'
+     * @param from - reference to a vertex from which there is probably an edge going outside to 'to'
+     * @param to - reference to a vertex to for  there is probably an edge going to from 'from'
+     * @return whether or there is such an edge
+     */
     @Override
     public boolean hasEdge(Graph.Vertex<V> from, Graph.Vertex<V> to) {
         if (from == null || to == null)
@@ -133,6 +179,10 @@ public class AdjacencyMatrixGraph<V, E> implements Graph<V, E> {
         return this.adjMatrix[this.indices.get(from)][this.indices.get(to)] != null;
     }
 
+    /**
+     * transposes the graph. If there is an edge from i to j, it removes the edge and adds an edge from j to i
+     * with the same weight (and bandwidth if present)
+     */
     public void transpose() {
         List<Graph.Edge<V, E>> newEdges = new ArrayList<>();
         for (Graph.Vertex<V> firstVertex : this.vertices) {
@@ -147,11 +197,16 @@ public class AdjacencyMatrixGraph<V, E> implements Graph<V, E> {
         newEdges.forEach(x -> this.addEdge(x.getTo(), x.getFrom(), x.getWeight()));
     }
 
-
+    /**
+     * @return whether or not the graph is acyclic
+     */
     public boolean isAcyclic() {
         return this.getCycle().isEmpty();
     }
 
+    /**
+     * @return list of vertices in a cycle from the graph if it is present, otherwise empty list
+     */
     public List<Vertex<V>> getCycle() {
         int[] color = new int[this.vertices.size()];
         int[] p = new int[this.vertices.size()];
