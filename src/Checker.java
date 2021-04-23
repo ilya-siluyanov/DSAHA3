@@ -50,6 +50,7 @@ public class Checker {
                         cycleWeight += graph.findEdge(cycle.get(cycle.size() - 1).getValue(), cycle.get(0).getValue()).getWeight();
                         System.out.print(cycleWeight + " ");
                         cycle.forEach(x -> System.out.print(x.getValue() + " "));
+                        System.out.println();
                     } else {
                         System.out.println("ACYCLIC");
                     }
