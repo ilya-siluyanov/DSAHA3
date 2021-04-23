@@ -39,6 +39,7 @@ public class Solution {
                 graph.removeEdge(edge);
             }
         }
+
         List<Graph.Vertex<Integer>> path = this.dijkstraAlgorithm(n, graph, start, end);
         if (path != null) {
             long vertices = path.size();
