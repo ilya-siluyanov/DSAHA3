@@ -2,7 +2,7 @@ package task1;
 
 import java.util.*;
 
-public class AdjacencyMatrixGraph<V extends Comparable<V>, E extends Comparable<E>> implements Graph<V, E> {
+public class AdjacencyMatrixGraph<V, E> implements Graph<V, E> {
     Edge<V, E>[][] adjMatrix;
 
     //indices and vertices have one-to-one mapping
