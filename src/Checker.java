@@ -1,15 +1,10 @@
 import java.util.*;
 import java.util.stream.Collectors;
 
-public class Checker implements Runnable {
+public class Checker {
     public static void main(String[] args) {
-        new Thread(null, new Checker(), "Checker", 1 >> 31).start();
-    }
-
-    @Override
-    public void run() {
         Scanner scanner = new Scanner(System.in);
-        AdjacencyMatrixGraph<String, Integer> graph = new AdjacencyMatrixGraph<>();
+        AdjacencyMatrixGraph<String, Long> graph = new AdjacencyMatrixGraph<>();
         String name;
         String fromName, toName, weight;
         while (scanner.hasNext()) {
@@ -27,7 +22,7 @@ public class Checker implements Runnable {
                     fromName = scanner.next();
                     toName = scanner.next();
                     weight = scanner.next();
-                    graph.addEdge(graph.findVertex(fromName), graph.findVertex(toName), Integer.parseInt(weight));
+                    graph.addEdge(graph.findVertex(fromName), graph.findVertex(toName), Long.parseLong(weight));
                     break;
                 case "REMOVE_EDGE":
                     fromName = scanner.next();
@@ -45,15 +40,14 @@ public class Checker implements Runnable {
                     if (!graph.isAcyclic()) {
                         List<Graph.Vertex<String>> cycle = graph.getCycle();
                         long cycleWeight = 0;
-                        for (int i = 0; i < cycle.size() - 1; i++) {
-                            cycleWeight += graph.findEdge(cycle.get(i).getValue(), cycle.get(i + 1).getValue()).getWeight();
+                        for (int i = 0; i < cycle.size(); i++) {
+                            cycleWeight += graph.findEdge(cycle.get(i).getValue(), cycle.get((i + 1) % cycle.size()).getValue()).getWeight();
                         }
-                        cycleWeight += graph.findEdge(cycle.get(cycle.size() - 1).getValue(), cycle.get(0).getValue()).getWeight();
                         System.out.print(cycleWeight + " ");
-                        for (int i = 0; i < cycle.size() - 1; i++) {
-                            System.out.print(cycle.get(i).getValue() + " ");
+                        for (Graph.Vertex<String> stringVertex : cycle) {
+                            System.out.print(stringVertex.getValue() + " ");
                         }
-                        System.out.println(cycle.get(cycle.size() - 1).getValue() + " ");
+                        System.out.println();
                     } else {
                         System.out.println("ACYCLIC");
                     }
@@ -197,7 +191,7 @@ class AdjacencyMatrixGraph<V, E> implements Graph<V, E> {
 
 
     public boolean isAcyclic() {
-        return this.getCycle().size() == 0;
+        return this.getCycle() == null;
     }
 
     public List<Graph.Vertex<V>> getCycle() {
@@ -208,15 +202,15 @@ class AdjacencyMatrixGraph<V, E> implements Graph<V, E> {
             if (color[i] == 0) {
                 cycleContainer = new ArrayList<>();
                 dfs(i, -1, p, color, cycleContainer);
-                if (!cycleContainer.isEmpty())
+                if (!cycleContainer.isEmpty()) {
                     break;
-                else {
+                } else {
                     cycleContainer = null;
                 }
             }
         }
         if (cycleContainer == null)
-            return new ArrayList<>();
+            return null;
         return cycleContainer.stream().map(x -> this.vertices.get(x)).collect(Collectors.toList());
 
     }
@@ -234,18 +228,30 @@ class AdjacencyMatrixGraph<V, E> implements Graph<V, E> {
      *                       from the cycle, otherwise it will be empty
      */
     private void dfs(int x, int from, int[] p, int[] color, List<Integer> cycleContainer) {
-        Stack<Integer> s = new Stack<>();
-        int[] numOfChild = new int[p.length];
-        s.push(x);
-        while(!s.isEmpty()){
-            Integer curr = s.pop();
-
-
-            if(p[curr]!=1){
-                numOfChild[p[curr]]
+        color[x] = 1;
+        p[x] = from;
+        for (int to : this.edgesFrom(this.vertices.get(x)).stream().map(v -> this.indices.get(v.getTo())).collect(Collectors.toList())) {
+            if (color[to] == 1) { //cycle is found
+                int curr = x;
+                while (curr != to) {
+                    cycleContainer.add(curr);
+                    curr = p[curr];
+                }
+                cycleContainer.add(curr);
+                for (int i = 0; i < cycleContainer.size() / 2; i++) {
+                    int temp = cycleContainer.get(i);
+                    int mirrorIndex = cycleContainer.size() - 1 - i;
+                    cycleContainer.set(i, cycleContainer.get(mirrorIndex));
+                    cycleContainer.set(mirrorIndex, temp);
+                }
+                break;
+            } else if (color[to] == 0) {
+                dfs(to, x, p, color, cycleContainer);
+                if (!cycleContainer.isEmpty())
+                    break;
             }
         }
-
+        color[x] = 2;
     }
 }
 
