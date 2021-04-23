@@ -21,7 +21,11 @@ public class AdjacencyMatrixGraph<V, E> implements Graph<V, E> {
 
     @Override
     public Graph.Vertex<V> addVertex(V value) { //O(n^2)
-        Graph.Vertex<V> v = new Graph.Vertex<>(value);
+
+        Graph.Vertex<V> v = this.findVertex(value);
+        if (v != null)
+            return v;
+        v = new Vertex<>(value);
         this.indices.put(v, this.vertices.size());
         this.vertices.add(v);
         int newSize = this.vertices.size();
@@ -38,6 +42,7 @@ public class AdjacencyMatrixGraph<V, E> implements Graph<V, E> {
         if (v == null)
             return;
         int vertexIndex = this.indices.get(v);
+        this.indices.remove(v);
         for (int i = vertexIndex + 1; i < this.vertices.size(); i++) {
             this.indices.put(this.vertices.get(i), i - 1);
             this.vertices.set(i - 1, this.vertices.get(i));
@@ -68,6 +73,8 @@ public class AdjacencyMatrixGraph<V, E> implements Graph<V, E> {
 
     @Override
     public Graph.Edge<V, E> addEdge(Graph.Vertex<V> from, Graph.Vertex<V> to, E weight) { //O(1)
+        if (from == null || to == null)
+            return null;
         Graph.Edge<V, E> edge = new Graph.Edge<>(from, to, weight);
         this.adjMatrix[this.indices.get(from)][this.indices.get(to)] = edge;
         return edge;
@@ -82,6 +89,8 @@ public class AdjacencyMatrixGraph<V, E> implements Graph<V, E> {
 
     @Override
     public Collection<Graph.Edge<V, E>> edgesFrom(Graph.Vertex<V> v) { //O(n)
+        if (v == null)
+            return new ArrayList<>();
         int index = this.indices.get(v);
         Collection<Graph.Edge<V, E>> edgesFrom = new ArrayList<>();
         Arrays.stream(this.adjMatrix[index]).filter(Objects::nonNull).forEach(edgesFrom::add);
@@ -90,6 +99,8 @@ public class AdjacencyMatrixGraph<V, E> implements Graph<V, E> {
 
     @Override
     public Collection<Graph.Edge<V, E>> edgesTo(Graph.Vertex<V> v) {//O(n)
+        if (v == null)
+            return new ArrayList<>();
         int index = this.indices.get(v);
         Collection<Graph.Edge<V, E>> edgesTo = new ArrayList<>();
         for (Graph.Edge<V, E>[] row : this.adjMatrix) {
@@ -117,8 +128,10 @@ public class AdjacencyMatrixGraph<V, E> implements Graph<V, E> {
     }
 
     @Override
-    public boolean hasEdge(Graph.Vertex<V> v, Graph.Vertex<V> u) {
-        return this.adjMatrix[this.indices.get(v)][this.indices.get(u)] != null;
+    public boolean hasEdge(Graph.Vertex<V> from, Graph.Vertex<V> to) {
+        if (from == null || to == null)
+            return false;
+        return this.adjMatrix[this.indices.get(from)][this.indices.get(to)] != null;
     }
 
     public void transpose() {
@@ -127,37 +140,32 @@ public class AdjacencyMatrixGraph<V, E> implements Graph<V, E> {
             for (Graph.Vertex<V> secondVertex : this.vertices) {
                 if (this.hasEdge(firstVertex, secondVertex)) {
                     Graph.Edge<V, E> prevEdge = this.findEdge(firstVertex.getValue(), secondVertex.getValue());
+                    newEdges.add(new Edge<>(firstVertex, secondVertex, prevEdge.getWeight()));
                     this.removeEdge(prevEdge);
-                    newEdges.add(new Graph.Edge<>(prevEdge.getTo(), prevEdge.getFrom(), prevEdge.getWeight()));
                 }
             }
         }
-        newEdges.forEach(x -> this.addEdge(x.getFrom(), x.getTo(), x.getWeight()));
+        newEdges.forEach(x -> this.addEdge(x.getTo(), x.getFrom(), x.getWeight()));
     }
 
 
     public boolean isAcyclic() {
-        return this.getCycle() == null;
+        return this.getCycle().isEmpty();
     }
 
-    public List<Graph.Vertex<V>> getCycle() {
-        this.color = new int[this.vertices.size()];
-        this.p = new int[this.vertices.size()];
-        this.cycleContainer = null;
+    public List<Vertex<V>> getCycle() {
+        int[] color = new int[this.vertices.size()];
+        int[] p = new int[this.vertices.size()];
+        List<Integer> cycleContainer = new ArrayList<>();
         for (int i = 0; i < this.vertices.size(); i++) {
             if (color[i] == 0) {
-                this.cycleContainer = new ArrayList<>();
-                dfs(i);
-                if (!this.cycleContainer.isEmpty()) {
+                cycleContainer = new ArrayList<>();
+                dfs(i, -1, p, color, cycleContainer);
+                if (!cycleContainer.isEmpty())
                     break;
-                } else {
-                    this.cycleContainer = null;
-                }
             }
         }
-        if (this.cycleContainer == null)
-            return null;
-        return this.cycleContainer.stream().map(x -> this.vertices.get(x)).collect(Collectors.toList());
+        return cycleContainer.stream().map(x -> this.vertices.get(x)).collect(Collectors.toList());
 
     }
 
@@ -166,20 +174,17 @@ public class AdjacencyMatrixGraph<V, E> implements Graph<V, E> {
      * @param from           - vertex from we came to x
      * @param p              - array of parents of vertices, p[i] - vertex from which we came to i
      * @param color          - color of a vertex.
-     * <p>
-     * p[i] = 0, if vertex was not visited
-     * p[i] = 1, if visited, but we are travelling through its children
-     * p[i] = 2, if dfs visited the vertex i and its children (and its children,and its children...)
-     * @param cycleContainer - if there will be a cycle, the method will fill the container with vertices
-     * from the cycle, otherwise it will be empty
+     *                       <p>
+     *                       p[i] = 0, if vertex was not visited
+     *                       p[i] = 1, if visited, but we are travelling through its children
+     *                       p[i] = 2, if dfs visited the vertex i and its children (and its children,and its children...)
+     * @param cycleContainer -  if there will be a cycle, the method will fill the container with vertices
+     *                       from the cycle, otherwise it will be empty
      */
-    private int[] p;
-    private int[] color;
-    private List<Integer> cycleContainer;
-
-    private void dfs(int x) {
+    private void dfs(int x, int from, int[] p, int[] color, List<Integer> cycleContainer) {
         color[x] = 1;
-        for (int to : this.edgesFrom(this.vertices.get(x)).stream().map(v -> this.indices.get(v.getTo())).collect(Collectors.toList())) {
+        p[x] = from;
+        for (int to : this.edgesFrom(this.vertices.get(x)).stream().map(Edge::getTo).filter(Objects::nonNull).map(v -> this.indices.get(v)).collect(Collectors.toList())) {
             if (color[to] == 1) { //cycle is found
                 int curr = x;
                 while (curr != to) {
@@ -190,15 +195,12 @@ public class AdjacencyMatrixGraph<V, E> implements Graph<V, E> {
                 for (int i = 0; i < cycleContainer.size() / 2; i++) {
                     int temp = cycleContainer.get(i);
                     int mirrorIndex = cycleContainer.size() - 1 - i;
-                    if (i >= mirrorIndex)
-                        break;
                     cycleContainer.set(i, cycleContainer.get(mirrorIndex));
                     cycleContainer.set(mirrorIndex, temp);
                 }
                 break;
             } else if (color[to] == 0) {
-                p[to] = x;
-                dfs(to);
+                dfs(to, x, p, color, cycleContainer);
                 if (!cycleContainer.isEmpty())
                     break;
             }

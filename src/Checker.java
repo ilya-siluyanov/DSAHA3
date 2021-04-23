@@ -45,9 +45,23 @@ public class Checker {
                         List<Graph.Vertex<String>> cycle = graph.getCycle();
                         long cycleWeight = 0;
                         for (int i = 0; i < cycle.size() - 1; i++) {
-                            cycleWeight += graph.findEdge(cycle.get(i).getValue(), cycle.get(i + 1).getValue()).getWeight();
+                            Graph.Edge<String, Integer> edge = graph.findEdge(cycle.get(i).getValue(), cycle.get(i + 1).getValue());
+                            //TODO: for debug!
+                            if (edge == null) {
+                                System.out.println(-1);
+                                System.out.flush();
+                                System.exit(0);
+                            }
+                            cycleWeight += edge.getWeight();
                         }
-                        cycleWeight += graph.findEdge(cycle.get(cycle.size() - 1).getValue(), cycle.get(0).getValue()).getWeight();
+                        Graph.Edge<String, Integer> edge = graph.findEdge(cycle.get(cycle.size() - 1).getValue(), cycle.get(0).getValue());
+                        //TODO: for debug!
+                        if (edge == null) {
+                            System.out.println(-1);
+                            System.out.flush();
+                            System.exit(0);
+                        }
+                        cycleWeight += edge.getWeight();
                         System.out.print(cycleWeight + " ");
                         cycle.forEach(x -> System.out.print(x.getValue() + " "));
                         System.out.println();
@@ -80,7 +94,11 @@ class AdjacencyMatrixGraph<V, E> implements Graph<V, E> {
 
     @Override
     public Graph.Vertex<V> addVertex(V value) { //O(n^2)
-        Graph.Vertex<V> v = new Graph.Vertex<>(value);
+
+        Graph.Vertex<V> v = this.findVertex(value);
+        if (v != null)
+            return v;
+        v = new Vertex<>(value);
         this.indices.put(v, this.vertices.size());
         this.vertices.add(v);
         int newSize = this.vertices.size();
@@ -205,26 +223,21 @@ class AdjacencyMatrixGraph<V, E> implements Graph<V, E> {
 
 
     public boolean isAcyclic() {
-        return this.getCycle() == null;
+        return this.getCycle().isEmpty();
     }
 
     public List<Vertex<V>> getCycle() {
         int[] color = new int[this.vertices.size()];
         int[] p = new int[this.vertices.size()];
-        List<Integer> cycleContainer = null;
+        List<Integer> cycleContainer = new ArrayList<>();
         for (int i = 0; i < this.vertices.size(); i++) {
             if (color[i] == 0) {
                 cycleContainer = new ArrayList<>();
                 dfs(i, -1, p, color, cycleContainer);
                 if (!cycleContainer.isEmpty())
                     break;
-                else {
-                    cycleContainer = null;
-                }
             }
         }
-        if (cycleContainer == null)
-            return null;
         return cycleContainer.stream().map(x -> this.vertices.get(x)).collect(Collectors.toList());
 
     }
