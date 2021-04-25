@@ -15,9 +15,7 @@ import java.util.Scanner;
  * @since 2021-04-21
  */
 public class Checker {
-    public static void main(String[] args) throws IOException {
-//        System.setIn(new BufferedInputStream(new FileInputStream("in.txt")));
-//        System.setOut(new PrintStream("out.txt"));
+    public static void main(String[] args) {
         Scanner scanner = new Scanner(System.in);
         AdjacencyMatrixGraph<String, Integer> graph = new AdjacencyMatrixGraph<>();
         String name;
