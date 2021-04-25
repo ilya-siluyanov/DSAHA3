@@ -29,7 +29,7 @@ public class AdjacencyMatrixGraph<V, E> implements Graph<V, E> {
     }
 
     /**
-     * adds a vertex to the graph
+     * adds a vertex with specified value to the graph
      *
      * @param value - value corresponding to a new vertex
      * @return reference to vertex with the corresponding value

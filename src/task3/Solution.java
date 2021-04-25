@@ -22,6 +22,9 @@ public class Solution {
         new Solution().go();
     }
 
+    /**
+     * the value which is larger than any possible length of path in a graph
+     */
     public static final long INF = (long) 10e15;
 
     public void go() {
