@@ -83,7 +83,7 @@ public class Solution {
      * @param graph - given graph
      * @param start - start vertex
      * @param end - end vertex
-     * @return - shortest path from start to end if present, otherwise null
+     * @return - list of vertices constituting the shortest path from start to end if present, otherwise null
      */
     public List<Graph.Vertex<Integer>> dijkstraAlgorithm(int n, AdjacencyMatrixGraph<Integer, EdgeInfo> graph, Graph.Vertex<Integer> start, Graph.Vertex<Integer> end) {
         //d[i] - the shortest path from start to vertex i, inf if there is no such a path from start to i
@@ -117,9 +117,9 @@ public class Solution {
             }
         }
 
-        if (d[end.getValue()] >= INF) {
+        if (d[end.getValue()] >= INF) { //there is no path from start to end
             return null;
-        } else {
+        } else { //otherwise
             List<Graph.Vertex<Integer>> ans = new ArrayList<>();
             int curr = end.getValue();
             while (p[curr] != -1) {

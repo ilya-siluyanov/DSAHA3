@@ -12,7 +12,9 @@ import java.util.*;
 public class AdjacencyMatrixGraph<V, E> implements Graph<V, E> {
     Graph.Edge<V, E>[][] adjMatrix;
 
-    //indices and vertices have one-to-one mapping
+    /**
+     * indices and vertices have one-to-one mapping
+     */
     HashMap<Vertex<V>, Integer> indices;
     ArrayList<Graph.Vertex<V>> vertices;
 
