@@ -32,7 +32,7 @@ public class AdjacencyMatrixGraph<V, E> implements Graph<V, E> {
      * @return reference to vertex with the corresponding value
      */
     @Override
-    public Graph.Vertex<V> addVertex(V value) { //O(n^2)
+    public Graph.Vertex<V> addVertex(V value) {
         Graph.Vertex<V> v = this.findVertex(value);
         if (v != null)
             return v;
@@ -54,7 +54,7 @@ public class AdjacencyMatrixGraph<V, E> implements Graph<V, E> {
      * @param v - reference to the vertex to remove
      */
     @Override
-    public void removeVertex(Graph.Vertex<V> v) { //O(n^2)
+    public void removeVertex(Graph.Vertex<V> v) {
         if (v == null)
             return;
         int vertexIndex = this.indices.get(v);
@@ -96,7 +96,7 @@ public class AdjacencyMatrixGraph<V, E> implements Graph<V, E> {
      * @return - reference to corresponding edge
      */
     @Override
-    public Graph.Edge<V, E> addEdge(Graph.Vertex<V> from, Graph.Vertex<V> to, E weight) { //O(1)
+    public Graph.Edge<V, E> addEdge(Graph.Vertex<V> from, Graph.Vertex<V> to, E weight) {
         if (from == null || to == null)
             return null;
         Graph.Edge<V, E> edge = new Graph.Edge<>(from, to, weight);
@@ -110,7 +110,7 @@ public class AdjacencyMatrixGraph<V, E> implements Graph<V, E> {
      * @param e - reference to edges to remove
      */
     @Override
-    public void removeEdge(Graph.Edge<V, E> e) { //O(1)
+    public void removeEdge(Graph.Edge<V, E> e) {
         if (e == null)
             return;
         this.adjMatrix[this.indices.get(e.getFrom())][this.indices.get(e.getTo())] = null;
@@ -121,7 +121,7 @@ public class AdjacencyMatrixGraph<V, E> implements Graph<V, E> {
      * @return collection of references to edges which go outside from the vertex v references to
      */
     @Override
-    public Collection<Graph.Edge<V, E>> edgesFrom(Graph.Vertex<V> v) { //O(n)
+    public Collection<Graph.Edge<V, E>> edgesFrom(Graph.Vertex<V> v) {
         if (v == null)
             return new ArrayList<>();
         int index = this.indices.get(v);
@@ -135,7 +135,7 @@ public class AdjacencyMatrixGraph<V, E> implements Graph<V, E> {
      * @return a collection of references to edges which go to the vertex v references to
      */
     @Override
-    public Collection<Graph.Edge<V, E>> edgesTo(Graph.Vertex<V> v) {//O(n)
+    public Collection<Graph.Edge<V, E>> edgesTo(Graph.Vertex<V> v) {
         if (v == null)
             return new ArrayList<>();
         int index = this.indices.get(v);
